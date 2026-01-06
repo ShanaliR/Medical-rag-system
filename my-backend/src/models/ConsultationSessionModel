@@ -1,0 +1,58 @@
+const mongoose = require("mongoose");
+
+// Consultation Session Model
+const ConsultationSessionSchema = new mongoose.Schema({
+  patientId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Patient",
+    required: true,
+  },
+  doctorId: {
+    type: String,
+    required: true,
+  },
+  doctorName: {
+    type: String,
+    required: true,
+  },
+  conversationLog: [
+    {
+      role: {
+        type: String,
+        enum: ["doctor", "senior_doctor"],
+        required: true,
+      },
+      text: {
+        type: String,
+        required: true,
+      },
+      timestamp: {
+        type: Date,
+        default: Date.now,
+      },
+    },
+  ],
+  status: {
+    type: String,
+    enum: ["active", "completed", "cancelled"],
+    default: "active",
+  },
+  summary: {
+    type: String,
+  },
+  startedAt: {
+    type: Date,
+    default: Date.now,
+  },
+  endedAt: {
+    type: Date,
+  },
+});
+
+ConsultationSessionSchema.index({ patientId: 1, status: 1 });
+ConsultationSessionSchema.index({ doctorId: 1, startedAt: -1 });
+
+module.exports = mongoose.model(
+  "ConsultationSession",
+  ConsultationSessionSchema
+);

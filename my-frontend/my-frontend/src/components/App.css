@@ -1,0 +1,241 @@
+/* frontend/src/components/App.css */
+
+.app-container {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    background-color: #f9f9f9;
+}
+
+h1 {
+    text-align: center;
+    color: #007bff;
+    margin-bottom: 30px;
+}
+
+/* --- Start Screen --- */
+.start-screen {
+    padding: 20px;
+    background-color: white;
+    border-radius: 8px;
+}
+
+.start-screen label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+}
+
+.start-screen input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.start-screen button, .restart-button {
+    background-color: #28a745;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    width: 100%;
+}
+
+.start-screen button:hover, .restart-button:hover {
+    background-color: #218838;
+}
+
+.note {
+    margin-top: 15px;
+    font-style: italic;
+    color: #666;
+    text-align: center;
+}
+
+/* --- Chat Interface --- */
+.chat-container {
+    display: flex;
+    flex-direction: column;
+    height: 600px;
+    background-color: #e9ecef;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.messages-area {
+    flex-grow: 1;
+    padding: 15px;
+    overflow-y: auto;
+    background-color: #fff;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.message-bubble {
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 15px;
+    max-width: 80%;
+    word-wrap: break-word;
+    line-height: 1.4;
+}
+
+.ai {
+    background-color: #e2f0ff;
+    align-self: flex-start;
+    margin-right: auto;
+}
+
+.user {
+    background-color: #d4edda;
+    align-self: flex-end;
+    margin-left: auto;
+    text-align: right;
+}
+
+.role-tag {
+    font-weight: bold;
+    margin-right: 5px;
+}
+
+.user-tag {
+    color: #155724;
+}
+
+.ai.loading {
+    font-style: italic;
+    color: #6c757d;
+    background-color: #f8f9fa;
+}
+
+/* --- Input Area --- */
+.input-area {
+    display: flex;
+    padding: 10px;
+    background-color: #f8f9fa;
+}
+
+.input-area input {
+    flex-grow: 1;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px 0 0 5px;
+    font-size: 16px;
+    border-right: none;
+}
+
+.input-area button {
+    padding: 10px 15px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 0 5px 5px 0;
+    cursor: pointer;
+}
+
+.input-area button:hover:not(:disabled) {
+    background-color: #0056b3;
+}
+
+.input-area button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+/* --- Question Display (MCQ) --- */
+.question-display {
+    padding: 15px;
+    background-color: #fff3cd;
+    border-top: 2px solid #ffc107;
+}
+
+.question-text {
+    font-weight: bold;
+    color: #856404;
+    margin-bottom: 10px;
+}
+
+.options-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.option-button {
+    flex-grow: 1;
+    padding: 10px 15px;
+    border: 1px solid #ffc107;
+    background-color: #ffeeba;
+    border-radius: 5px;
+    cursor: pointer;
+    text-align: center;
+    font-weight: 500;
+}
+
+.option-button:hover {
+    background-color: #ffda7c;
+}
+
+/* --- Result Display --- */
+.result-display {
+    padding: 30px;
+    background-color: white;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.result-display h2 {
+    color: #007bff;
+}
+
+.score {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #28a745;
+    margin: 20px 0;
+}
+
+.feedback-section {
+    text-align: left;
+    margin-top: 30px;
+    border-top: 1px solid #eee;
+    padding-top: 20px;
+}
+
+.feedback-section h3 {
+    color: #343a40;
+    margin-bottom: 10px;
+}
+
+.full-log {
+    max-height: 250px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    padding: 10px;
+    background-color: #f8f9fa;
+    border-radius: 5px;
+}
+
+.log-line {
+    margin: 5px 0;
+    padding-bottom: 5px;
+    border-bottom: 1px dotted #e9ecef;
+}
+
+.log-line.ai {
+    color: #0056b3;
+}
+
+.log-line.user {
+    color: #218838;
+}
+
+.restart-button {
+    margin-top: 30px;
+}

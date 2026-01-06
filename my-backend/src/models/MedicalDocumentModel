@@ -1,0 +1,53 @@
+const mongoose = require("mongoose");
+
+// Medical Document Model with Embeddings
+const MedicalDocumentSchema = new mongoose.Schema({
+  patientId: {
+    type: String,
+    ref: "Patient",
+    required: true,
+    index: true,
+  },
+  documentName: {
+    type: String,
+    required: true,
+  },
+  documentType: {
+    type: String,
+    enum: [
+      "Lab Report",
+      "X-Ray",
+      "MRI",
+      "CT Scan",
+      "Prescription",
+      "Medical Record",
+      "Test Result",
+      "Other",
+    ],
+    default: "Medical Record",
+  },
+  date: {
+    type: Date,
+    default: Date.now,
+    index: true,
+  },
+  originalContent: {
+    type: String,
+    required: true,
+  },
+  embedding: {
+    type: [Number],
+    required: true,
+  },
+  uploadedAt: {
+    type: Date,
+    default: Date.now,
+  },
+  fileSize: Number,
+  mimeType: String,
+});
+
+// Index for efficient similarity searches
+MedicalDocumentSchema.index({ embedding: "2dsphere" });
+
+module.exports = mongoose.model("MedicalDocument", MedicalDocumentSchema);

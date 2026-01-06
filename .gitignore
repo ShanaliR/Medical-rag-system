@@ -1,0 +1,28 @@
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Env
+.env
+
+# macOS
+.DS_Store
+
+# Logs
+logs/
+*.log
+
+# Build outputs
+dist/
+build/
+
+# Local uploads and secrets
+uploads/
+**/firebaseSecret.json
+**/agent-chat-app-*.json
+
+# Editor
+.vscode/
+.idea/
