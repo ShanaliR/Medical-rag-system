@@ -42,7 +42,7 @@ app.use("/api", medicalDocumentRoute);
 
 // Basic route for home
 app.get("/", (req, res) => {
-  res.send("HR Bot SAAS Backend API is running...");
+  res.send("Rag Backend API is running...");
 });
 
 const PORT = process.env.PORT || 8000;

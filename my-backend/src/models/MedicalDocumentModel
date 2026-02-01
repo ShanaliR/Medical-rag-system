@@ -16,7 +16,8 @@ const MedicalDocumentSchema = new mongoose.Schema({
     type: String,
     enum: [
       "Lab Report",
-      "X-Ray",
+      "Medical Report",
+      // "X-Ray",
       "MRI",
       "CT Scan",
       "Prescription",

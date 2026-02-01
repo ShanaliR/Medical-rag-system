@@ -6,13 +6,33 @@ const medicalDocumentController = require("../controllers/medicalDocumentControl
 // Configure multer for file uploads (PDF files only)
 const upload = multer({
   storage: multer.memoryStorage(),
+  // fileFilter: (req, file, cb) => {
+  //   if (file.mimetype === "application/pdf") {
+  //     cb(null, true);
+  //   } else {
+  //     cb(new Error("Only PDF files are allowed"));
+  //   }
+  // },
+
+
   fileFilter: (req, file, cb) => {
-    if (file.mimetype === "application/pdf") {
+    const allowedTypes = [
+      "application/pdf",
+      "image/png",
+      "image/jpeg",
+      "image/jpg",
+    ];
+
+    if (allowedTypes.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error("Only PDF files are allowed"));
+      cb(
+        new Error("Only PDF and image files (PNG, JPG, JPEG) are allowed"),
+        false
+      );
     }
   },
+
   limits: {
     fileSize: 10 * 1024 * 1024, // 10MB limit
   },
