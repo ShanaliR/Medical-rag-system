@@ -12,12 +12,12 @@ const DocumentManager = ({ patientId }) => {
   const fileInputRef = useRef(null);
 
   const documentTypes = [
-    "X-Ray",
+    // "X-Ray",
+    "Test Result",
     "MRI",
     "CT Scan",
     "Prescription",
     "Medical Record",
-    "Test Result",
     "Other",
   ];
 
