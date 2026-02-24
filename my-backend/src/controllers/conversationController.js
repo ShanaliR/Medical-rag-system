@@ -3,6 +3,7 @@ const Patient = require("../models/PatientModel");
 const MedicalDocument = require("../models/MedicalDocumentModel");
 const ConsultationSession = require("../models/ConsultationSessionModel");
 const { GoogleGenAI } = require("@google/genai");
+const Prescription = require("../models/PrescriptionModel");
 
 if (!process.env.GEMINI_API_KEY) {
   throw new Error("GEMINI_API_KEY environment variable is not set");
@@ -114,6 +115,7 @@ exports.registerPatient = async (req, res) => {
     // Create new patient record
     const newPatient = new Patient({
       patientId,
+      doctorId: req.doctor._id,
       name,
       age,
       weight,
@@ -155,7 +157,11 @@ exports.updatePatient = async (req, res) => {
   const updateData = req.body;
 
   try {
-    const patient = await Patient.findOne({ patientId });
+    //const patient = await Patient.findOne({ patientId });
+    const patient = await Patient.findOne({
+  patientId,
+  doctorId: req.doctor._id,
+});
 
     if (!patient) {
       return res.status(404).json({ message: "Patient not found." });
@@ -321,6 +327,55 @@ exports.askSeniorDoctor = async (req, res) => {
 
     console.log("Relevant Context:", relevantContext);
 
+
+
+
+    // const prescriptions = await Prescription.find({
+    //   patientId: patient.patientId,
+    // })
+    //   .sort({ createdAt: -1 })
+    //   .limit(5)
+    //   .select("prescriptionText");
+
+    // if (prescriptions.length > 0) {
+    //   relevantContext += "\n\n### PRESCRIPTION HISTORY ###\n";
+    //   prescriptions.forEach((p) => {
+    //     relevantContext += `\n${p.prescriptionText}\n`;
+    //   });
+    //   relevantContext += "\n### END PRESCRIPTIONS ###\n";
+    // }
+
+
+
+
+
+  // Retrieve prescriptions for context
+  const prescriptions = await Prescription.find({
+    patientId: patient.patientId,
+  });
+
+  if (prescriptions.length > 0) {
+    relevantContext += "\n\n### PRESCRIPTIONS ###\n";
+    prescriptions.forEach((p) => {
+      relevantContext += `
+      Issued by Dr. ${p.doctorName} on ${p.issuedAt}
+      Diagnosis: ${p.diagnosis || "N/A"}
+      Medications:
+      ${p.medications
+        .map(
+          (m) =>
+            `${m.name} (${m.dosage}) - ${m.frequency}, Duration: ${m.duration}`
+        )
+        .join("\n")}
+      `;
+    });
+    relevantContext += "\n### END PRESCRIPTIONS ###";
+  }
+
+
+
+
+
     // System instruction for Senior Doctor Bot
     const systemInstruction = `You are a Senior Supervisor Doctor AI Assistant helping junior doctors with patient consultations. 
 
@@ -387,7 +442,10 @@ Context Relevance Score: ${(similarity * 100).toFixed(1)}%`;
 // 5a. Get All Patients
 exports.getAllPatients = async (req, res) => {
   try {
-    const patients = await Patient.find().select("-embedding");
+    //const patients = await Patient.find().select("-embedding");
+    const patients = await Patient.find({
+  doctorId: req.doctor._id,
+}).select("-embedding");
 
     res.status(200).json({
       count: patients.length,
@@ -405,7 +463,11 @@ exports.getAllPatients = async (req, res) => {
 exports.getPatient = async (req, res) => {
   try {
     const { patientId } = req.params;
-    const patient = await Patient.findOne({ patientId }).select("-embedding");
+    //const patient = await Patient.findOne({ patientId }).select("-embedding");
+    const patient = await Patient.findOne({
+  patientId,
+  doctorId: req.doctor._id,
+}).select("-embedding");
 
     if (!patient) {
       return res.status(404).json({ message: "Patient not found." });
@@ -487,9 +549,12 @@ exports.searchPatientsBySimilarity = async (req, res) => {
     const queryEmbedding = await generateEmbedding(searchQuery);
 
     // Get all patients
-    const patients = await Patient.find().select(
-      "patientId name age embedding"
-    );
+    // const patients = await Patient.find().select(
+    //   "patientId name age embedding"
+    // );
+    const patients = await Patient.find({
+  doctorId: req.doctor._id,
+}).select("patientId name age embedding");
 
     // Calculate similarities
     const patientsWithScores = patients.map((patient) => ({

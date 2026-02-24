@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const multer = require("multer");
 const medicalDocumentController = require("../controllers/medicalDocumentController");
+const { protect } = require("../middleware/authMiddleware");
 
 // Configure multer for file uploads (PDF files only)
 const upload = multer({
@@ -41,27 +42,29 @@ const upload = multer({
 // Medical Document Routes
 router.post(
   "/documents/add",
-  upload.single("file"),
+  upload.single("file"), protect,
   medicalDocumentController.addMedicalDocument
 );
 router.get(
   "/documents/patient/:patientId",
+  protect,
   medicalDocumentController.getPatientDocuments
 );
 router.get(
   "/documents/:documentId",
+  protect,
   medicalDocumentController.getMedicalDocument
 );
 router.post(
-  "/documents/search",
+  "/documents/search", protect,
   medicalDocumentController.searchDocumentsBySimilarity
 );
 router.put(
-  "/documents/:documentId",
+  "/documents/:documentId", protect,
   medicalDocumentController.updateMedicalDocument
 );
 router.delete(
-  "/documents/:documentId",
+  "/documents/:documentId", protect,
   medicalDocumentController.deleteMedicalDocument
 );
 

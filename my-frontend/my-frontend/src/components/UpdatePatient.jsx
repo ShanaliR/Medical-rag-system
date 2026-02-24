@@ -1,8 +1,23 @@
-import React, { useState } from "react";
+//import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Search, Edit3, AlertCircle, CheckCircle, Loader } from "lucide-react";
 import DocumentManager from "./DocumentManager";
+import PrescriptionManager from "./PrescriptionManager";
+
 
 const API_BASE_URL = "http://localhost:8000/api";
+const getAuthHeaders = () => {
+  const token = localStorage.getItem("token");
+
+  if (!token) {
+    throw new Error("Doctor not authenticated");
+  }
+
+  return {
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json",
+  };
+};
 
 const UpdatePatient = () => {
   const [searchId, setSearchId] = useState("");
@@ -10,6 +25,8 @@ const UpdatePatient = () => {
   const [loading, setLoading] = useState(false);
   const [notification, setNotification] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [allPatients, setAllPatients] = useState([]);
+
 
   const [formData, setFormData] = useState({
     name: "",
@@ -32,6 +49,41 @@ const UpdatePatient = () => {
     setTimeout(() => setNotification(null), 4000);
   };
 
+    useEffect(() => {
+    const fetchAllPatients = async () => {
+      try {
+        //const response = await fetch(`${API_BASE_URL}/patients`);
+        const response = await fetch(`${API_BASE_URL}/patients`, {
+  headers: getAuthHeaders(),
+});
+        const data = await response.json();
+
+        if (response.ok) {
+        if (Array.isArray(data)) {
+          setAllPatients(data);
+        } else if (Array.isArray(data.patients)) {
+          setAllPatients(data.patients);
+        } else if (Array.isArray(data.data)) {
+          setAllPatients(data.data);
+        } else {
+          setAllPatients([]);
+          showNotification("Unexpected patient data format", "error");
+        }
+
+
+        } else {
+          showNotification("Failed to load patients", "error");
+        }
+      } catch (error) {
+        console.error("Error fetching patients:", error);
+        showNotification("Error loading patients", "error");
+      }
+    };
+
+    fetchAllPatients();
+  }, []);
+
+
   const searchPatient = async () => {
     if (!searchId.trim()) {
       showNotification("Please enter a patient ID", "error");
@@ -40,9 +92,15 @@ const UpdatePatient = () => {
 
     setLoading(true);
     try {
+      // const response = await fetch(
+      //   `${API_BASE_URL}/patients/${searchId.trim()}`
+      // );
       const response = await fetch(
-        `${API_BASE_URL}/patients/${searchId.trim()}`
-      );
+  `${API_BASE_URL}/patients/${searchId.trim()}`,
+  {
+    headers: getAuthHeaders(),
+  }
+);
       const data = await response.json();
 
       if (response.ok) {
@@ -105,14 +163,22 @@ const UpdatePatient = () => {
     };
 
     try {
+      // const response = await fetch(
+      //   `${API_BASE_URL}/patients/${selectedPatient.patientId}`,
+      //   {
+      //     method: "PUT",
+      //     headers: { "Content-Type": "application/json" },
+      //     body: JSON.stringify(payload),
+      //   }
+      // );
       const response = await fetch(
-        `${API_BASE_URL}/patients/${selectedPatient.patientId}`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        }
-      );
+  `${API_BASE_URL}/patients/${selectedPatient.patientId}`,
+  {
+    method: "PUT",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(payload),
+  }
+);
 
       const data = await response.json();
 
@@ -139,6 +205,37 @@ const UpdatePatient = () => {
     setSelectedPatient(null);
     setIsEditing(false);
   };
+
+
+
+  const handleSelectPatient = (patient) => {
+  setSelectedPatient(patient);
+  setSearchId(patient.patientId);
+  setIsEditing(false);
+
+  setFormData({
+    name: patient.name || "",
+    age: patient.age || "",
+    weight: patient.weight || "",
+    height: patient.height || "",
+    gender: patient.gender || "Male",
+    bloodType: patient.bloodType || "A+",
+    allergies: Array.isArray(patient.allergies)
+      ? patient.allergies.join(", ")
+      : patient.allergies || "",
+    chronicConditions: Array.isArray(patient.chronicConditions)
+      ? patient.chronicConditions.join(", ")
+      : patient.chronicConditions || "",
+    lifestyle: patient.lifestyle || {
+      smoking: "No",
+      alcohol: "No",
+      exercise: "Regular",
+    },
+  });
+};
+
+
+
 
   return (
     <div className="w-full max-w-6xl mx-auto p-6">
@@ -181,6 +278,40 @@ const UpdatePatient = () => {
             </button>
           )}
         </div>
+      </div>
+
+      {/* All Patients List */}
+      <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+        <h3 className="text-xl font-semibold text-gray-800 mb-4">
+          All Patients
+        </h3>
+
+        {allPatients.length === 0 ? (
+          <p className="text-gray-500">No patients available</p>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {allPatients.map((patient) => (
+              <div
+                key={patient.patientId}
+                onClick={() => handleSelectPatient(patient)}
+                className="border rounded-lg p-4 cursor-pointer hover:shadow-md hover:border-blue-500 transition"
+              >
+                <h4 className="font-semibold text-gray-900">
+                  {patient.name}
+                </h4>
+                <p className="text-sm text-gray-600">
+                  ID: {patient.patientId}
+                </p>
+                <p className="text-sm text-gray-600">
+                  {patient.age} yrs • {patient.gender}
+                </p>
+                <p className="text-sm text-gray-600">
+                  Blood: {patient.bloodType}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Notification */}
@@ -476,6 +607,9 @@ const UpdatePatient = () => {
 
           {/* Documents Manager */}
           <DocumentManager patientId={selectedPatient.patientId} />
+
+          {/* Prescription Manager */}
+          <PrescriptionManager patientId={selectedPatient.patientId} />
         </div>
       ) : (
         <div className="bg-gray-50 rounded-lg p-12 text-center">
