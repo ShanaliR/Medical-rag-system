@@ -18,8 +18,12 @@
 
 import axios from "axios";
 
+const baseURL = process.env.REACT_APP_CENTRAL_API_GATEWAY_URL 
+  ? `${process.env.REACT_APP_CENTRAL_API_GATEWAY_URL}/api/medical-rag/api`
+  : 'http://localhost:8080/api/medical-rag/api';
+
 const authAxios = axios.create({
-  baseURL: "http://localhost:8000/api",
+  baseURL,
 });
 
 authAxios.interceptors.request.use(

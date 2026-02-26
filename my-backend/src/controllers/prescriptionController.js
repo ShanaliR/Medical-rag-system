@@ -117,8 +117,9 @@ exports.addPrescription = async (req, res) => {
           const drugB = medications[j].name.trim();
 
           try {
+            const gatewayUrl = process.env.CENTRAL_API_GATEWAY_URL || 'http://localhost:8080';
             const ddiResponse = await axios.post(
-              "https://fast-api-ddi.onrender.com/predict",
+              `${gatewayUrl}/api/ddi-ai/predict`,
               {
                 drugA: drugA,
                 drugB: drugB,
