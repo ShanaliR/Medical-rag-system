@@ -198,6 +198,10 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
+const baseURL = process.env.REACT_APP_CENTRAL_API_GATEWAY_URL 
+  ? `${process.env.REACT_APP_CENTRAL_API_GATEWAY_URL}/api/medical-rag/api`
+  : 'http://localhost:8080/api/medical-rag/api';
+
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
@@ -220,12 +224,12 @@ export const AuthProvider = ({ children }) => {
   }, [doctor, token]);
 
   const signup = async (form) => {
-    const res = await axios.post("http://localhost:8000/api/auth/signup", form);
+    const res = await axios.post(`${baseURL}/auth/signup`, form);
     return res.data;
   };
 
   const login = async (email, password) => {
-    const res = await axios.post("http://localhost:8000/api/auth/login", {
+    const res = await axios.post(`${baseURL}/auth/login`, {
       email,
       password,
     });
@@ -245,7 +249,7 @@ export const AuthProvider = ({ children }) => {
 
   // Axios instance for protected routes
   const api = axios.create({
-    baseURL: "http://localhost:8000/api",
+    baseURL,
   });
 
   api.interceptors.request.use(
