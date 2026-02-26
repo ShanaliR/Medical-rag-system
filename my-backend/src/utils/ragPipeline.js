@@ -19,7 +19,7 @@ class RAGPipeline {
     this.HUMAN_ASSISTANCE_FLAG = HUMAN_ASSISTANCE_FLAG;
   }
 
-  // 🔧 Utility: Gemini Model Fetcher
+  //  Utility: Gemini Model Fetcher
   getGeminiModel(modelName = "gemini-2.5-flash", systemInstruction = null) {
     const config = { model: modelName };
     if (systemInstruction) {
@@ -28,7 +28,7 @@ class RAGPipeline {
     return this.genAI.getGenerativeModel(config);
   }
 
-  // 🔧 Utility: Translate Text via Gemini
+  //  Utility: Translate Text via Gemini
   async translateViaGemini(text, targetLangCode) {
     if (!text || !targetLangCode) return text;
     const prompt = TRANSLATE_PROMPT_TEMPLATE.replace(
@@ -50,14 +50,14 @@ class RAGPipeline {
     }
   }
 
-  // 🔧 Utility: Generate Content via Gemini
+  //  Utility: Generate Content via Gemini
   async generateAndRephraseResponse(prompt) {
     const model = this.getGeminiModel();
     const response = await model.generateContent(prompt);
     return response.response.text();
   }
 
-  // 🔧 Utility: Format conversation history for context
+  //  Utility: Format conversation history for context
   formatConversationHistory(messageHistory = []) {
     if (!messageHistory || messageHistory.length === 0) {
       return null;
@@ -77,7 +77,7 @@ class RAGPipeline {
     return formattedHistory || null;
   }
 
-  // 🔍 Vector Search: Documents
+  //  Vector Search: Documents
   async getRelevantChunks(query, topK = 10) {
     const embedModel = this.getGeminiModel("embedding-001");
     const res = await embedModel.embedContent({
@@ -99,7 +99,7 @@ class RAGPipeline {
     ]);
   }
 
-  // 🔍 Vector Search: Training Q&A
+  //  Vector Search: Training Q&A
   async getRelevantTrainData(query, topK = 3) {
     const embedModel = this.getGeminiModel("embedding-001");
     const res = await embedModel.embedContent({
@@ -121,7 +121,7 @@ class RAGPipeline {
     ]);
   }
 
-  // 📄 Document-based Answer Generation
+  //  Document-based Answer Generation
   async getDocumentResponse(message, processedMessage, lang, messageHistory = []) {
     const employee_id = "EMP0002";
     const chunks = await this.getRelevantChunks(processedMessage);
@@ -156,7 +156,7 @@ class RAGPipeline {
     return await model.generateContent(prompt).then(result => result.response.text());
   }
 
-  // ❓ Training Q&A-based Answer Generation
+  //  Training Q&A-based Answer Generation
   async getTrainingResponse(message, processedMessage, messageHistory = []) {
     const chunks = await this.getRelevantTrainData(processedMessage);
     console.log(
@@ -191,7 +191,7 @@ class RAGPipeline {
     return await model.generateContent(prompt).then(result => result.response.text());
   }
 
-  // 🎯 Main RAG Processing Method
+  //  Main RAG Processing Method
   async processQuery(message, messagehistory ,options = {}) {
     const {
       lang = "en",

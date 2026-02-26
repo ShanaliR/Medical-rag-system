@@ -2,6 +2,8 @@ require("dotenv").config();
 const Prescription = require("../models/PrescriptionModel");
 const Patient = require("../models/PatientModel");
 const { GoogleGenAI } = require("@google/genai");
+const axios = require("axios");
+
 
 if (!process.env.GEMINI_API_KEY) {
   throw new Error("GEMINI_API_KEY environment variable is not set");
@@ -24,6 +26,68 @@ async function generateEmbedding(text) {
 //
 // Add Prescription
 //
+// exports.addPrescription = async (req, res) => {
+//   try {
+//     const { patientId, medications, diagnosis, notes } = req.body;
+
+//     const doctorId = req.doctor.doctorId;
+//     const doctorName = req.doctor.fullName;
+
+//     const patient = await Patient.findOne({ patientId });
+//     if (!patient) {
+//       return res.status(404).json({ message: "Patient not found." });
+//     }
+
+//     if (!medications || medications.length === 0) {
+//       return res
+//         .status(400)
+//         .json({ message: "At least one medication is required." });
+//     }
+
+//     // Build prescription text for embedding
+//     const prescriptionText = `
+//       Prescription for Patient: ${patient.name}
+//       Diagnosis: ${diagnosis || "Not specified"}
+
+//       Medications:
+//       ${medications
+//         .map(
+//           (m) =>
+//             `${m.name} - ${m.dosage}, ${m.frequency}, Duration: ${m.duration}, Instructions: ${m.instructions || "None"}`
+//         )
+//         .join("\n")}
+
+//       Notes: ${notes || "None"}
+//     `.trim();
+
+//     const embedding = await generateEmbedding(prescriptionText);
+
+//     const prescription = new Prescription({
+//       patientId,
+//       doctorId,
+//       doctorName,
+//       medications,
+//       diagnosis,
+//       notes,
+//       embedding,
+//     });
+
+//     await prescription.save();
+
+//     res.status(201).json({
+//       message: "Prescription added successfully.",
+//       prescriptionId: prescription._id,
+//     });
+//   } catch (error) {
+//     console.error("Add prescription error:", error);
+//     res.status(500).json({
+//       message: "Failed to add prescription.",
+//       error: error.message,
+//     });
+//   }
+// };
+
+
 exports.addPrescription = async (req, res) => {
   try {
     const { patientId, medications, diagnosis, notes } = req.body;
@@ -37,26 +101,83 @@ exports.addPrescription = async (req, res) => {
     }
 
     if (!medications || medications.length === 0) {
-      return res
-        .status(400)
-        .json({ message: "At least one medication is required." });
+      return res.status(400).json({
+        message: "At least one medication is required.",
+      });
     }
 
-    // Build prescription text for embedding
+   
+    //  DRUG INTERACTION CHECK
+    
+    if (medications.length > 1) {
+      for (let i = 0; i < medications.length; i++) {
+        for (let j = i + 1; j < medications.length; j++) {
+
+          const drugA = medications[i].name.trim();
+          const drugB = medications[j].name.trim();
+
+          try {
+            const ddiResponse = await axios.post(
+              "https://fast-api-ddi.onrender.com/predict",
+              {
+                drugA: drugA,
+                drugB: drugB,
+              },
+              {
+                timeout: 30000,
+                headers: { "Content-Type": "application/json" },
+              }
+            );
+
+            const result = ddiResponse.data;
+
+            console.log("DDI Result:", result);
+
+            // if (result && result.probability >= 0.5) {
+            //   return res.status(400).json({
+            //     message: `⚠ Drug interaction detected between ${drugA} and ${drugB}`,
+            //     risk: result.risk,
+            //     probability: result.probability,
+            //   });
+            // }
+
+            if (result && result.probability >= 0.5 && !req.body.overrideInteraction) {
+            return res.status(400).json({
+              message: `Drug interaction detected between ${drugA} and ${drugB}`,
+              risk: result.risk,
+              probability: result.probability,
+            });
+          }
+
+          } catch (ddiError) {
+            console.error("DDI API Error:", ddiError.response?.data || ddiError.message);
+
+            return res.status(503).json({
+              message: "Drug interaction service unavailable. Please try again.",
+            });
+          }
+        }
+      }
+    }
+
+
+    // SAFE → GENERATE EMBEDDING
+ 
+
     const prescriptionText = `
-      Prescription for Patient: ${patient.name}
-      Diagnosis: ${diagnosis || "Not specified"}
+Prescription for Patient: ${patient.name}
+Diagnosis: ${diagnosis || "Not specified"}
 
-      Medications:
-      ${medications
-        .map(
-          (m) =>
-            `${m.name} - ${m.dosage}, ${m.frequency}, Duration: ${m.duration}, Instructions: ${m.instructions || "None"}`
-        )
-        .join("\n")}
+Medications:
+${medications
+  .map(
+    (m) =>
+      `${m.name} - ${m.dosage}, ${m.frequency}, Duration: ${m.duration}`
+  )
+  .join("\n")}
 
-      Notes: ${notes || "None"}
-    `.trim();
+Notes: ${notes || "None"}
+`.trim();
 
     const embedding = await generateEmbedding(prescriptionText);
 
@@ -72,22 +193,23 @@ exports.addPrescription = async (req, res) => {
 
     await prescription.save();
 
-    res.status(201).json({
+    return res.status(201).json({
       message: "Prescription added successfully.",
       prescriptionId: prescription._id,
     });
+
   } catch (error) {
     console.error("Add prescription error:", error);
-    res.status(500).json({
+
+    return res.status(500).json({
       message: "Failed to add prescription.",
       error: error.message,
     });
   }
 };
 
-//
 // Get All Prescriptions for Patient
-//
+
 exports.getPatientPrescriptions = async (req, res) => {
   try {
     const { patientId } = req.params;
@@ -109,9 +231,9 @@ exports.getPatientPrescriptions = async (req, res) => {
   }
 };
 
-//
+
 // Delete Prescription
-//
+
 exports.deletePrescription = async (req, res) => {
   try {
     const { prescriptionId } = req.params;
