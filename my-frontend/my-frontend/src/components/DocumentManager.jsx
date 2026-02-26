@@ -1,7 +1,8 @@
 import React, { useState, useRef } from "react";
 import { FileUp, X, CheckCircle, AlertCircle } from "lucide-react";
+import authAxios from "../utils/authAxios";
 
-const API_BASE_URL = "http://localhost:8000/api";
+//const API_BASE_URL = "http://localhost:8000/api";
 
 const DocumentManager = ({ patientId }) => {
   const [documents, setDocuments] = useState([]);
@@ -12,12 +13,12 @@ const DocumentManager = ({ patientId }) => {
   const fileInputRef = useRef(null);
 
   const documentTypes = [
-    "X-Ray",
-    "MRI",
-    "CT Scan",
+    // "X-Ray",
+    "Test Result",
+    // "MRI",
+    // "CT Scan",
     "Prescription",
     "Medical Record",
-    "Test Result",
     "Other",
   ];
 
@@ -44,28 +45,64 @@ const DocumentManager = ({ patientId }) => {
     formData.append("documentType", documentType);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/documents/add`, {
-        method: "POST",
-        body: formData,
+      // const response = await fetch(`${API_BASE_URL}/documents/add`, {
+      //   method: "POST",
+      //   body: formData,
+      // });
+
+    //   const response = await authAxios.post(
+    //   "/documents/add",
+    //   formData,
+    //   {
+    //     headers: {
+    //       "Content-Type": "multipart/form-data",
+    //     },
+    //   }
+    // );
+
+    //   //const data = await response.json();
+    //   const data = response.data;
+
+    //   if (response.ok) {
+    //     showNotification("Document uploaded successfully!", "success");
+    //     await fetchPatientDocuments();
+    //     // Reset form
+    //     setDocumentName("");
+    //     setDocumentType("Medical Report");
+    //     if (fileInputRef.current) {
+    //       fileInputRef.current.value = "";
+    //     }
+
+
+
+    const response = await authAxios.post("/documents/add", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       });
 
-      const data = await response.json();
-
-      if (response.ok) {
+      // Axios doesn't have response.ok
+      if (response.status >= 200 && response.status < 300) {
         showNotification("Document uploaded successfully!", "success");
-        await fetchPatientDocuments();
-        // Reset form
         setDocumentName("");
         setDocumentType("Medical Report");
-        if (fileInputRef.current) {
-          fileInputRef.current.value = "";
-        }
+        if (fileInputRef.current) fileInputRef.current.value = "";
+        fetchPatientDocuments();
       } else {
-        showNotification(data.message || "Upload failed", "error");
+        showNotification(response.data.message || "Upload failed", "error");
       }
-    } catch (error) {
-      console.error("Error uploading document:", error);
-      showNotification("Error uploading document", "error");
+    } catch (err) {
+      console.error("Error uploading document:", err);
+      showNotification(
+        err.response?.data?.message || "Error uploading document",
+        "error"
+      );
+    //   } else {
+    //     showNotification(data.message || "Upload failed", "error");
+    //   }
+    // } catch (error) {
+    //   console.error("Error uploading document:", error);
+    //   showNotification("Error uploading document", "error");
     } finally {
       setLoading(false);
     }
@@ -74,19 +111,34 @@ const DocumentManager = ({ patientId }) => {
   const fetchPatientDocuments = async () => {
     if (!patientId) return;
 
-    try {
-      const response = await fetch(
-        `${API_BASE_URL}/documents/patient/${patientId}`
-      );
-      const data = await response.json();
+    // try {
+    //   // const response = await fetch(
+    //   //   `${API_BASE_URL}/documents/patient/${patientId}`
+    //   // );
+    //   // const data = await response.json();
+    //   const response = await authAxios.get(`/documents/patient/${patientId}`);
 
-      if (response.ok && Array.isArray(data.documents)) {
-        setDocuments(data.documents);
+    //   const data = response.data;
+
+    //   if (response.ok && Array.isArray(data.documents)) {
+    //     setDocuments(data.documents);
+    //   } else {
+    //     setDocuments([]);
+    //   }
+    // } catch (error) {
+    //   console.error("Error fetching documents:", error);
+    //   setDocuments([]);
+    // }
+
+    try {
+      const response = await authAxios.get(`/documents/patient/${patientId}`);
+      if (Array.isArray(response.data.documents)) {
+        setDocuments(response.data.documents);
       } else {
         setDocuments([]);
       }
-    } catch (error) {
-      console.error("Error fetching documents:", error);
+    } catch (err) {
+      console.error("Error fetching documents:", err);
       setDocuments([]);
     }
   };
@@ -97,9 +149,14 @@ const DocumentManager = ({ patientId }) => {
 
   const handleDownload = async (documentId) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/documents/${documentId}`);
+      //const response = await fetch(`${API_BASE_URL}/documents/${documentId}`);
+      const response = await authAxios.get(
+      `/documents/${documentId}`,
+      { responseType: "blob" }
+    );
       if (response.ok) {
-        const blob = await response.blob();
+        //const blob = await response.blob();
+        const blob = response.data;
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;

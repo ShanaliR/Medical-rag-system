@@ -1,8 +1,12 @@
 import axios from 'axios';
 
 // Create axios instance with base configuration
+const baseURL = process.env.REACT_APP_CENTRAL_API_GATEWAY_URL 
+  ? `${process.env.REACT_APP_CENTRAL_API_GATEWAY_URL}/api/medical-rag/api`
+  : 'http://localhost:8080/api/medical-rag/api';
+
 const API = axios.create({
-    baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5009/api',
+    baseURL,
     timeout: 30000, // 30 seconds timeout
     headers: {
         'Content-Type': 'application/json',

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import authAxios from "../utils/authAxios";
 
 const ConsultationChat = ({
   selectedPatient,
@@ -46,9 +47,12 @@ const ConsultationChat = ({
 
     setIsLoading(true);
     try {
-      const response = await axios.get(
-        `http://localhost:8000/api/consultations/${sessionId}`
-      );
+      // const response = await axios.get(
+      //   `http://localhost:8000/api/consultations/${sessionId}`
+      // );
+      const response = await authAxios.get(
+ `/consultations/${sessionId}`
+);
       setConsultationDetails(response.data);
       // Convert conversation log to messages format
       const formattedMessages =
@@ -71,9 +75,12 @@ const ConsultationChat = ({
     console.log("Fetching consultation details for session:", patientId);
     setDocumentsLoading(true);
     try {
-      const response = await axios.get(
-        `http://localhost:8000/api/documents/patient/${patientId}`
-      );
+      // const response = await axios.get(
+      //   `http://localhost:8000/api/documents/patient/${patientId}`
+      // );
+      const response = await authAxios.get(
+ `/documents/patient/${patientId}`
+);
 
       setDocuments(response.data.documents || []);
       setSelectedDocuments([]);
@@ -111,10 +118,14 @@ const ConsultationChat = ({
         selectedDoc: selectedDocuments.map((doc) => doc._id),
       };
 
-      const response = await axios.post(
-        "http://localhost:8000/api/consultations/ask",
-        payload
-      );
+      // const response = await axios.post(
+      //   "http://localhost:8000/api/consultations/ask",
+      //   payload
+      // );
+      const response = await authAxios.post(
+  "/consultations/ask",
+  payload
+);
 
       const aiResponse = {
         id: Date.now() + 1,
@@ -206,7 +217,7 @@ const ConsultationChat = ({
               </p>
             )}
           </div>
-          {consultationDetails && (
+          {/* {consultationDetails && (
             <div className="text-right">
               <div className="text-sm text-gray-600">
                 <span className="font-medium">Questions Asked: </span>
@@ -219,7 +230,49 @@ const ConsultationChat = ({
                 {new Date(consultationDetails.createdAt).toLocaleDateString()}
               </div>
             </div>
-          )}
+          )} */}
+
+
+
+          {consultationDetails && (
+          <div className="text-right">
+            <div className="text-sm text-gray-600">
+              <span className="font-medium">Questions Asked: </span>
+              {messages.filter((msg) => msg.role === "doctor").length}
+            </div>
+
+            {/* <div className="text-xs text-gray-500 mt-1">
+              Started:{" "}
+              {consultationDetails.createdAt
+                ? new Date(consultationDetails.createdAt).toLocaleDateString()
+                : "N/A"}
+            </div> */}
+            <div className="text-xs text-gray-500 mt-1">
+            Started:{" "}
+            {consultationDetails.createdAt
+              ? new Date(consultationDetails.createdAt).toLocaleString("en-LK", {
+                  timeZone: "Asia/Colombo",
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  hour12: true,
+                })
+              : new Date().toLocaleString("en-LK", {
+                  timeZone: "Asia/Colombo",
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  hour12: true,
+                })}
+          </div>
+          </div>
+        )}
+
+
         </div>
       </div>
 

@@ -4,6 +4,9 @@ const Patient = require("../models/PatientModel");
 const { GoogleGenAI } = require("@google/genai");
 const pdfParse = require("pdf-parse");
 
+const Tesseract = require("tesseract.js");
+const sharp = require("sharp");
+
 if (!process.env.GEMINI_API_KEY) {
   throw new Error("GEMINI_API_KEY environment variable is not set");
 }
@@ -39,6 +42,31 @@ async function extractTextFromPDF(pdfBuffer) {
   }
 }
 
+
+async function extractTextFromImage(imageBuffer) {
+  try {
+    // Preprocess image to improve OCR accuracy
+    const processedImage = await sharp(imageBuffer)
+      .grayscale()
+      .normalize()
+      .toBuffer();
+
+    const {
+      data: { text },
+    } = await Tesseract.recognize(processedImage, "eng", {
+      //logger: (m) => console.log(m.status),
+      logger: () => {},
+    });
+
+    return text.trim();
+  } catch (error) {
+    console.error("Image OCR error:", error);
+    throw new Error("Failed to extract text from image");
+  }
+}
+
+
+
 // Add Medical Document
 exports.addMedicalDocument = async (req, res) => {
   try {
@@ -55,12 +83,36 @@ exports.addMedicalDocument = async (req, res) => {
     let content = documentContent;
 
     // If file is uploaded, extract text from PDF
+    // if (req.file) {
+    //   if (req.file.mimetype !== "application/pdf") {
+    //     return res.status(400).json({ error: "Only PDF files are supported" });
+    //   }
+    //   content = await extractTextFromPDF(req.file.buffer);
+    // }
+
+
+    // Handle file uploads (PDF or Image)
     if (req.file) {
-      if (req.file.mimetype !== "application/pdf") {
-        return res.status(400).json({ error: "Only PDF files are supported" });
+      const mimeType = req.file.mimetype;
+
+      if (mimeType === "application/pdf") {
+        content = await extractTextFromPDF(req.file.buffer);
+
+      } else if (
+        mimeType === "image/png" ||
+        mimeType === "image/jpeg" ||
+        mimeType === "image/jpg"
+      ) {
+        content = await extractTextFromImage(req.file.buffer);
+
+      } else {
+        return res.status(400).json({
+          error: "Unsupported file type. Upload PDF or image files only.",
+        });
       }
-      content = await extractTextFromPDF(req.file.buffer);
     }
+
+
 
     if (!content) {
       return res.status(400).json({

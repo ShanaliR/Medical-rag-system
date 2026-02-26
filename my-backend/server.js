@@ -7,6 +7,8 @@ const connectDB = require("./src/config/db");
 const trainingRoutes = require("./src/routes/trainingRoutes");
 const conversationRoute = require("./src/routes/conversationRoute");
 const medicalDocumentRoute = require("./src/routes/medicalDocumentRoute");
+const prescriptionRoutes = require("./src/routes/prescriptionRoutes");
+const authRoutes = require("./src/routes/authRoutes");
 
 // Import new live chat routes
 const fs = require("fs");
@@ -38,11 +40,15 @@ if (!fs.existsSync(uploadDir)) {
 // Define API routes
 app.use("/api", conversationRoute);
 app.use("/api", medicalDocumentRoute);
+//app.use("/api", prescriptionRoutes);
+app.use("/api/prescriptions", prescriptionRoutes);
+app.use("/api/auth", authRoutes);
+
 // app.use("/api/data", dataRouter);
 
 // Basic route for home
 app.get("/", (req, res) => {
-  res.send("HR Bot SAAS Backend API is running...");
+  res.send("Rag Backend API is running...");
 });
 
 const PORT = process.env.PORT || 8000;

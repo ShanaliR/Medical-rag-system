@@ -52,39 +52,181 @@ export const RegisterPatient = () => {
     frequency: "",
   });
 
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+  //   setLoading(true);
+
+  //   const payload = {
+  //     ...formData,
+  //     age: parseInt(formData.age),
+  //     weight: parseFloat(formData.weight),
+  //     height: parseFloat(formData.height),
+  //     allergies: formData.allergies
+  //       .split(",")
+  //       .map((a) => a.trim())
+  //       .filter(Boolean),
+  //     chronicConditions: formData.chronicConditions
+  //       .split(",")
+  //       .map((c) => c.trim())
+  //       .filter(Boolean),
+  //   };
+
+  //   try {
+  //     const response = await fetch(`${API_BASE_URL}/patients/register`, {
+  //       method: "POST",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify(payload),
+  //     });
+
+  //     const data = await response.json();
+
+  //     if (response.ok) {
+  //       showNotification(
+  //         `Patient ${data.name} registered successfully!`,
+  //         "success"
+  //       );
+  //       setFormData({
+  //         patientId: "",
+  //         name: "",
+  //         age: "",
+  //         weight: "",
+  //         height: "",
+  //         gender: "Male",
+  //         bloodType: "A+",
+  //         allergies: "",
+  //         chronicConditions: "",
+  //         medications: [],
+  //         lifestyle: { smoking: "No", alcohol: "No", exercise: "Regular" },
+  //       });
+  //       setMedication({ name: "", dosage: "", frequency: "" });
+  //     } else {
+  //       showNotification(data.message || "Registration failed", "error");
+  //     }
+  //   } catch (error) {
+  //     showNotification("Error connecting to server", "error");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+
+
+
+//   const handleSubmit = async (e) => {
+//   e.preventDefault();
+//   setLoading(true);
+
+//   const token = localStorage.getItem("token");
+
+//   if (!token) {
+//     showNotification("Doctor not authenticated. Please login again.", "error");
+//     setLoading(false);
+//     return;
+//   }
+
+//   const payload = {
+//     ...formData,
+//     age: parseInt(formData.age),
+//     weight: parseFloat(formData.weight),
+//     height: parseFloat(formData.height),
+//     allergies: formData.allergies
+//       .split(",")
+//       .map((a) => a.trim())
+//       .filter(Boolean),
+//     chronicConditions: formData.chronicConditions
+//       .split(",")
+//       .map((c) => c.trim())
+//       .filter(Boolean),
+//   };
+
+//   try {
+//     const response = await fetch(`${API_BASE_URL}/patients/register`, {
+//       method: "POST",
+//       headers: {
+//         "Content-Type": "application/json",
+//         Authorization: `Bearer ${token}`, // 🔐 doctor JWT
+//       },
+//       body: JSON.stringify(payload),
+//     });
+
+//     const data = await response.json();
+
+//     if (response.ok) {
+//       showNotification(
+//         `Patient ${data.patient?.name || payload.name} registered successfully!`,
+//         "success"
+//       );
+
+//       setFormData({
+//         patientId: "",
+//         name: "",
+//         age: "",
+//         weight: "",
+//         height: "",
+//         gender: "Male",
+//         bloodType: "A+",
+//         allergies: "",
+//         chronicConditions: "",
+//         medications: [],
+//         lifestyle: { smoking: "No", alcohol: "No", exercise: "Regular" },
+//       });
+
+//       setMedication({ name: "", dosage: "", frequency: "" });
+//     } else {
+//       showNotification(data.message || "Registration failed", "error");
+//     }
+//   } catch (error) {
+//     console.error(error);
+//     showNotification("Error connecting to server", "error");
+//   } finally {
+//     setLoading(false);
+//   }
+// };
+
+
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
+    const token = localStorage.getItem("token");
+    if (!token) {
+      showNotification("Doctor not authenticated. Please login again.", "error");
+      setLoading(false);
+      return;
+    }
+
+    // Format payload correctly
     const payload = {
       ...formData,
-      age: parseInt(formData.age),
-      weight: parseFloat(formData.weight),
-      height: parseFloat(formData.height),
+      age: parseInt(formData.age) || 0,
+      weight: parseFloat(formData.weight) || 0,
+      height: parseFloat(formData.height) || 0,
       allergies: formData.allergies
-        .split(",")
-        .map((a) => a.trim())
-        .filter(Boolean),
+        ? formData.allergies.split(",").map((a) => a.trim()).filter(Boolean)
+        : [],
       chronicConditions: formData.chronicConditions
-        .split(",")
-        .map((c) => c.trim())
-        .filter(Boolean),
+        ? formData.chronicConditions.split(",").map((c) => c.trim()).filter(Boolean)
+        : [],
+      medications: formData.medications || [],
     };
 
     try {
       const response = await fetch(`${API_BASE_URL}/patients/register`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify(payload),
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        showNotification(
-          `Patient ${data.name} registered successfully!`,
-          "success"
-        );
+        showNotification(`Patient ${data.patient?.name || payload.name} registered successfully!`, "success");
+
+        // Reset form
         setFormData({
           patientId: "",
           name: "",
@@ -103,11 +245,15 @@ export const RegisterPatient = () => {
         showNotification(data.message || "Registration failed", "error");
       }
     } catch (error) {
+      console.error(error);
       showNotification("Error connecting to server", "error");
     } finally {
       setLoading(false);
     }
   };
+
+
+
 
   const addMedication = () => {
     if (medication.name && medication.dosage) {
