@@ -11,7 +11,10 @@ import {
   X,
 } from "lucide-react";
 
-const API_BASE_URL = "http://localhost:8000/api"; // Change to your backend URL
+const baseURL = process.env.REACT_APP_CENTRAL_API_GATEWAY_URL 
+  ? `${process.env.REACT_APP_CENTRAL_API_GATEWAY_URL}/api/medical-rag/api/prescriptions`
+  : 'http://localhost:8080/api/medical-rag/api/prescriptions';
+//const API_BASE_URL = "http://localhost:8000/api"; // Change to your backend URL
 
 export const RegisterPatient = () => {
   const [activeTab, setActiveTab] = useState("register");
@@ -212,7 +215,7 @@ export const RegisterPatient = () => {
     };
 
     try {
-      const response = await fetch(`${API_BASE_URL}/patients/register`, {
+      const response = await fetch(`${baseURL}/patients/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
