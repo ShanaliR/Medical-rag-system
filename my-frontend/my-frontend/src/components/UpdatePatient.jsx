@@ -5,7 +5,11 @@ import DocumentManager from "./DocumentManager";
 import PrescriptionManager from "./PrescriptionManager";
 
 
-const API_BASE_URL = "http://localhost:8000/api";
+// const API_BASE_URL = "http://localhost:8000/api";
+const baseURL = process.env.REACT_APP_CENTRAL_API_GATEWAY_URL 
+  ? `${process.env.REACT_APP_CENTRAL_API_GATEWAY_URL}/api/medical-rag/api`
+  : 'http://localhost:8080/api/medical-rag/api';
+
 const getAuthHeaders = () => {
   const token = localStorage.getItem("token");
 
@@ -53,7 +57,7 @@ const UpdatePatient = () => {
     const fetchAllPatients = async () => {
       try {
         //const response = await fetch(`${API_BASE_URL}/patients`);
-        const response = await fetch(`${API_BASE_URL}/patients`, {
+        const response = await fetch(`${baseURL}/patients`, {
   headers: getAuthHeaders(),
 });
         const data = await response.json();
@@ -96,7 +100,7 @@ const UpdatePatient = () => {
       //   `${API_BASE_URL}/patients/${searchId.trim()}`
       // );
       const response = await fetch(
-  `${API_BASE_URL}/patients/${searchId.trim()}`,
+  `${baseURL}/patients/${searchId.trim()}`,
   {
     headers: getAuthHeaders(),
   }
@@ -172,7 +176,7 @@ const UpdatePatient = () => {
       //   }
       // );
       const response = await fetch(
-  `${API_BASE_URL}/patients/${selectedPatient.patientId}`,
+  `${baseURL}/patients/${selectedPatient.patientId}`,
   {
     method: "PUT",
     headers: getAuthHeaders(),

@@ -266,7 +266,10 @@
 import React, { useEffect, useState } from "react";
 import { PlusCircle, Trash2, FileText, CheckCircle, AlertCircle } from "lucide-react";
 
-const API_BASE_URL = "http://localhost:8000/api/prescriptions";
+// const API_BASE_URL = "http://localhost:8000/api/prescriptions";
+const baseURL = process.env.REACT_APP_CENTRAL_API_GATEWAY_URL 
+  ? `${process.env.REACT_APP_CENTRAL_API_GATEWAY_URL}/api/medical-rag/api/prescriptions`
+  : 'http://localhost:8080/api/medical-rag/api/prescriptions';
 
 const getAuthHeaders = () => {
   const token = localStorage.getItem("token");
@@ -310,7 +313,7 @@ const [showInteractionModal, setShowInteractionModal] = useState(false);
     setLoading(true);
     try {
       //const res = await fetch(`${API_BASE_URL}/${patientId}`);
-      const res = await fetch(`${API_BASE_URL}/${patientId}`, {
+      const res = await fetch(`${baseURL}/${patientId}`, {
   headers: getAuthHeaders(),
 });
       const data = await res.json();
@@ -508,7 +511,7 @@ const handleSubmit = async (e, override = false) => {
   }
 
   try {
-    const res = await fetch(API_BASE_URL, {
+    const res = await fetch(baseURL, {
       method: "POST",
       headers: getAuthHeaders(),
       body: JSON.stringify({
@@ -516,7 +519,7 @@ const handleSubmit = async (e, override = false) => {
         diagnosis: formData.diagnosis,
         medications: formData.medications,
         notes: formData.notes,
-        overrideInteraction: override, // 👈 NEW
+        overrideInteraction: override, 
       }),
     });
 
@@ -561,7 +564,7 @@ const handleSubmit = async (e, override = false) => {
   const handleDelete = async (id) => {
     try {
       //const res = await fetch(`${API_BASE_URL}/${id}`, { method: "DELETE" });
-      const res = await fetch(`${API_BASE_URL}/${id}`, {
+      const res = await fetch(`${baseURL}/${id}`, {
   method: "DELETE",
   headers: getAuthHeaders(),
 });
